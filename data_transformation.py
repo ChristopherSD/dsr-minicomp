@@ -1,12 +1,12 @@
 '''Function to impute and transform data.
 '''
-from typing import List
+from typing import List, Tuple
 
 import pandas as pd
 
 _sales_col = 'Sales'
 
-def get_all_train_data():
+def get_all_train_data() -> pd.DataFrame:
     '''    Get all data an merge into one big dataframe
     '''
     train_data = pd.read_csv("data/train.csv")
@@ -18,7 +18,7 @@ def get_all_train_data():
     return all_data
 
 
-def fillna_StoreType_and_factorize(all_data):
+def fillna_StoreType_and_factorize(all_data: pd.DataFrame) -> Tuple[pd.Series, dict, dict]:
     '''Fill nan value in StoreType with string 'unknown' and label encode the values
 
     Args:
