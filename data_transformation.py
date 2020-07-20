@@ -42,3 +42,21 @@ def drop_empty_sales(df: pd.DataFrame) -> pd.DataFrame:
     '''Drop all rows where the Sales column is Na.
     '''
     return df[df[_sales_col].notna()]
+
+def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
+    
+    """
+    Prepare base table:
+        - Drop sales
+        - Make base imputation
+    """
+    
+    #general 
+    df = drop_empty_sales(df)
+    
+    ########################################
+    #Data Imputation and transformation
+    ########################################
+    df = fillna_StoreType_and_factorize(df)
+    
+    return df
