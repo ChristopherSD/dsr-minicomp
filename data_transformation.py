@@ -121,6 +121,9 @@ def create_basetable() -> pd.DataFrame:
     # impute customers (rolling average)
     inplace_impute_rolling_avg_customers(df)
 
+    # impute Open
+    df.Open = impute_open_from_customers(df)
+
     # default values
     impute_config = {
         'Store': 0,
