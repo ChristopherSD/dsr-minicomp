@@ -68,7 +68,7 @@ def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOf
     return dow_imputed
 
 
-def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
+def create_basetable() -> pd.DataFrame:
     """Prepare base table:
         - Drop sales
         - Make imputation with default value
@@ -79,16 +79,20 @@ def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
         Returns:
             df: Cleanse data ready for FeatureEngineering
     """
+    #get raw data
+    df = get_all_train_data()
 
-    #general
+    #competition modification - dropping NULL sales
     df = drop_empty_sales(df)
 
-    #impute
+    #custom imputers
+    df['WeekOfDay'] = impute_dayofweek_from_date
 
     #default values
     impute_config = {
         'Store': 0,
-        'DayOfWeek': 'unknown'
+        'DayOfWeek': 'unknown',
+        'Promo': ''
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
