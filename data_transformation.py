@@ -118,10 +118,12 @@ def create_basetable() -> pd.DataFrame:
     #custom imputers
     df['DayOfWeek'] = impute_dayofweek_from_date(df)
 
+    # impute customers (rolling average)
+    inplace_impute_rolling_avg_customers(df)
+
     #default values
     impute_config = {
         'Store': 0,
-        'DayOfWeek': 'unknown',
         'Promo': 'unknown'
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
