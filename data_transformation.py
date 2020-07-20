@@ -101,7 +101,6 @@ def create_basetable() -> pd.DataFrame:
         - Make customized imputations
 
         Args:
-            df: output of get_all_train_data()
         Returns:
             df: Cleanse data ready for FeatureEngineering
     """
