@@ -143,6 +143,32 @@ def create_basetable() -> pd.DataFrame:
     return df
 
 
+def impute_holiday(df: pd.DataFrame, column: str) -> pd.Series:
+    """
+    Impute the holiday indicator based on list of known holidays.
+    If it's not a known holiday, it tries to gather data based on information from another stores
+    at that specific day.
+
+    Args:
+        df (pd.DataFrame): input DataFrame
+        column: column that requires imputed values
+    Returns:
+        pd.Series: imputed column with holiday indicator
+    """
+    df = df[[column, 'Date']]
+    null_mask = (df[column] == 'unknown')
+    df_null = df.loc[null_mask, :]
+
+    for i, index in enumerate(df_null.index):
+        mask = (df['Date'] == df_null.iloc[i]['Date'])
+        temp_value = df.loc[mask, column].value_counts().sort_values(ascending=False)[0]
+        df.loc[index][column] = temp_value
+
+    assert df.isna().sum() != 0
+
+    return df[column]
+
+
 def inplace_impute_rolling_avg_customers(all_data: pd.DataFrame, do_plot=False):
     """Manipulates input Dataframe in place:
     Fills in missing Customers with a rolling average from the last monthly,
