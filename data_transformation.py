@@ -116,13 +116,13 @@ def create_basetable() -> pd.DataFrame:
     df = drop_empty_sales(df)
 
     #custom imputers
-    df['WeekOfDay'] = impute_dayofweek_from_date
+    df['DayOfWeek'] = impute_dayofweek_from_date(df)
 
     #default values
     impute_config = {
         'Store': 0,
         'DayOfWeek': 'unknown',
-        'Promo': ''
+        'Promo': 'unknown'
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
