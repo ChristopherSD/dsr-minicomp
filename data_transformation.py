@@ -12,7 +12,7 @@ def get_all_train_data():
     train_data = pd.read_csv("data/train.csv")
     store_data = pd.read_csv("data/store.csv")
 
-    all_data = train_data.merge(store_data, how = 'outer', left_on='Store', right_on='Store')
+    all_data = train_data.merge(store_data, how='outer', left_on='Store', right_on='Store')
     all_data.Date = pd.to_datetime(all_data.Date, format='%Y-%m-%d')
 
     return all_data
@@ -66,3 +66,20 @@ def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOf
     dow_imputed = df[dow_col].fillna(missing_dow[dow_col]) + 1.0
 
     return dow_imputed
+
+
+def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
+    """Prepare base table:
+        - Drop sales
+        - Make base imputation
+    """
+
+    # general
+    df = drop_empty_sales(df)
+
+    ########################################
+    # Data Imputation and transformation
+    ########################################
+    df = fillna_StoreType_and_factorize(df)
+
+    return df
