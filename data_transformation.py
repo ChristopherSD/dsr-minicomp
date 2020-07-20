@@ -109,23 +109,30 @@ def create_basetable() -> pd.DataFrame:
         Returns:
             df: Cleanse data ready for FeatureEngineering
     """
-    #get raw data
+    # get raw data
     df = get_all_train_data()
 
-    #competition modification - dropping NULL sales
+    # competition modification - dropping NULL sales
     df = drop_empty_sales(df)
 
-    #custom imputers
+    # custom imputers
     df['DayOfWeek'] = impute_dayofweek_from_date(df)
 
-    #default values
+    # default values
     impute_config = {
         'Store': 0,
+        'StoreType': 'unknown',
+        'SchoolHoliday': 'unknown',
+        'Assortment': 'unknown',
+        'StateHoliday': 'unknown',
         'DayOfWeek': 'unknown',
         'Promo': 'unknown'
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
+
+    # convert data types
+    df['StateHoliday'] = df['StateHoliday'].astype(str)
 
     return df
 
@@ -186,5 +193,3 @@ def inplace_impute_rolling_avg_customers(all_data, do_plot=False):
 
         for i in range(60):
             plt.axvline(datetime.date(2013, 2, 1) + datetime.timedelta(days=i), alpha=0.2)
-
-
