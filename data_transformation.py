@@ -1,5 +1,7 @@
 """Functions to impute and transform data.
 """
+from typing import List
+
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
@@ -97,27 +99,30 @@ def impute_open_from_customers(df: pd.DataFrame, open_col='Open', customers_col=
     return open_imputed
 
 
-def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
+def create_basetable() -> pd.DataFrame:
     """Prepare base table:
         - Drop sales
         - Make imputation with default value
         - Make customized imputations
 
         Args:
-            df: output of get_all_train_data()
         Returns:
             df: Cleanse data ready for FeatureEngineering
     """
+    #get raw data
+    df = get_all_train_data()
 
-    #general
+    #competition modification - dropping NULL sales
     df = drop_empty_sales(df)
 
-    #impute
+    #custom imputers
+    df['WeekOfDay'] = impute_dayofweek_from_date
 
     #default values
     impute_config = {
         'Store': 0,
-        'DayOfWeek': 'unknown'
+        'DayOfWeek': 'unknown',
+        'Promo': ''
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
