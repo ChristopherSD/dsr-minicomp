@@ -1,6 +1,11 @@
 """Functions to impute and transform data.
 """
 import pandas as pd
+import matplotlib.pyplot as plt
+from tqdm import tqdm
+import datetime
+import numpy as np
+import seaborn as sns
 
 
 _sales_col = 'Sales'
@@ -118,3 +123,63 @@ def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
         df[col] = df[col].fillna(default_value)
 
     return df
+
+
+def inplace_impute_rolling_avg_customers(all_data, do_plot=False):
+    '''Manipulates input Dataframe in place:
+    Fills in missing Customers with a rolling average from the last monthly,
+    for each weekday respectively. This is done for each store ID separately.
+    Where not possible, a simple median is used as fill value.
+    '''
+
+    customers_per_store_and_date = all_data.groupby(['Store', 'Date'])['Customers'].mean()
+
+    # go through store
+    store_numbers = customers_per_store_and_date.index.get_level_values('Store').unique().astype(int)
+    pbar = tqdm(store_numbers)
+    for store_i in store_numbers:
+        store_data = customers_per_store_and_date.loc[(store_i, slice(None))]
+
+        # slice at store index and resampl per day (missing days will be nan)
+        tmp = store_data.droplevel(0).resample('d').mean().to_frame()
+
+        # average over the last month for each weekday, respectively
+        fill_vals = np.nanmean(pd.concat([tmp.shift(7), tmp.shift(14), tmp.shift(21), tmp.shift(28)], axis=1), axis=1)
+
+        # fill in rolling average, if not possible just fill in average over the whole training set
+        tmp['rolling_avg'] = fill_vals
+        tmp.loc[(tmp.rolling_avg.isna()) & (tmp.index.weekday != 6), 'rolling_avg'] = tmp[
+            tmp.index.weekday != 6].Customers.median()
+        tmp.loc[(tmp.rolling_avg.isna()) & (tmp.index.weekday == 6), 'rolling_avg'] = tmp[
+            tmp.index.weekday == 6].Customers.median()
+
+        # substitute average into missing rows in base table
+        na_rows = store_data.loc[store_data.isna()].index.get_level_values('Date')
+        all_data.loc[(all_data.Store == store_i) & (all_data.Customers.isna()), 'Customers'] = tmp.loc[
+            na_rows, 'rolling_avg'].values
+
+        pbar.update(1)
+    pbar.close()
+
+    # fill in rest with mean of Sunday/Weekday respectively
+    all_data.loc[(all_data.Customers.isna()) & (all_data.Date.dt.weekday == 6), 'Customers'] = all_data.loc[
+        all_data.Date.dt.weekday == 6].Customers.median()
+    all_data.loc[(all_data.Customers.isna()) & (all_data.Date.dt.weekday != 6), 'Customers'] = all_data.loc[
+        all_data.Date.dt.weekday != 6].Customers.median()
+
+    # optional plot
+    if do_plot:
+        fig, ax = plt.subplots(figsize=(15, 5))
+
+        after = all_data.groupby(['Store', 'Date'])['Customers'].mean().loc[(store_i, slice(None))]
+        after = after.reset_index()
+
+        after.plot(ax=ax, x='Date', y='Customers', marker='o', linewidth=0)
+        tmp['Customers'].plot(ax=ax, marker='o')
+
+        ax.set_xlim([datetime.date(2013, 2, 1), datetime.date(2013, 3, 1)])
+
+        for i in range(60):
+            plt.axvline(datetime.date(2013, 2, 1) + datetime.timedelta(days=i), alpha=0.2)
+
+
