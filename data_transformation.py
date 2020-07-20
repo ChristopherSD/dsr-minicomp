@@ -95,15 +95,26 @@ def impute_open_from_customers(df: pd.DataFrame, open_col='Open', customers_col=
 def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
     """Prepare base table:
         - Drop sales
-        - Make base imputation
+        - Make imputation with default value
+        - Make customized imputations
+
+        Args:
+            df: output of get_all_train_data()
+        Returns:
+            df: Cleanse data ready for FeatureEngineering
     """
 
-    # general
+    #general
     df = drop_empty_sales(df)
 
-    ########################################
-    # Data Imputation and transformation
-    ########################################
-    df = fillna_StoreType_and_factorize(df)
+    #impute
+
+    #default values
+    impute_config = {
+        'Store': 0,
+        'DayOfWeek': 'unknown'
+    }
+    for col, default_value in zip(impute_config.keys(), impute_config.values()):
+        df[col] = df[col].fillna(default_value)
 
     return df
