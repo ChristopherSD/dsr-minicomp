@@ -1,10 +1,10 @@
 """Functions to impute and transform data.
 """
-from typing import List
-
 import pandas as pd
 
+
 _sales_col = 'Sales'
+
 
 def get_all_train_data():
     """Get all data an merge into one big dataframe and convert Date to datetime
@@ -48,6 +48,7 @@ def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOf
     """ Impute the day of the week from the corresponding date, if present.
     If the date column is not of type DateTime, it will be converted locally (the original data frame is not changed).
     If the corresponding date entry is not available, day of week will remain Na.
+    Does not take Date Na values into account.
 
     Args:
         df: original raw data
@@ -66,6 +67,29 @@ def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOf
     dow_imputed = df[dow_col].fillna(missing_dow[dow_col]) + 1.0
 
     return dow_imputed
+
+
+def impute_open_from_customers(df: pd.DataFrame, open_col='Open', customers_col='Customers') -> pd.Series:
+    """ Impute missing open values based on customer number.
+    If customer number in the same entry is greater than zero, the shop must have been open.
+    Does not take Customers Na values into account.
+
+    Args:
+        df: original raw data
+        open_col: The name of the column containing whether the store was opened on a given date (0 or 1)
+        customers_col: The name of the column containing the numbers of customers on a given date
+    Return:
+         open_imputed: A pd.Series representing the open status of a shop with imputed values.
+    """
+    missing_open = df.loc[df[open_col].isna() & df[customers_col] > 0]
+    missing_open[open_col] = 1.0
+    open_imputed = df[open_col].fillna(missing_open[open_col])
+
+    missing_closed = df.loc[df[open_col].isna() & df[customers_col] <= 0]
+    missing_closed[open_col] = 0.0
+    open_imputed = open_imputed.fillna(missing_closed[open_col])
+
+    return open_imputed
 
 
 def create_basetable(df: pd.DataFrame) -> pd.DataFrame:
