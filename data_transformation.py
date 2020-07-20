@@ -10,6 +10,8 @@ def get_all_train_data():
     store_data = pd.read_csv("data/store.csv")
 
     all_data = train_data.merge(store_data, how = 'outer', left_on='Store', right_on='Store')
+    all_data.Date = pd.to_datetime(all_data.Date, format='%Y-%m-%d')
+    
     return all_data
 
 
