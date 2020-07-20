@@ -17,3 +17,6 @@ def generate_CompetitionSince(all_data: pd.DataFrame):
 
     all_data.loc[mask, 'CompetitionSince'] = CompetitionSince
 
+def execute_transformations(df: pd.DataFrame) -> pd.DataFrame:
+
+    return df.dropna(axis=1)
