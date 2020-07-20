@@ -130,12 +130,12 @@ def create_basetable() -> pd.DataFrame:
     return df
 
 
-def inplace_impute_rolling_avg_customers(all_data, do_plot=False):
-    '''Manipulates input Dataframe in place:
+def inplace_impute_rolling_avg_customers(all_data: pd.DataFrame, do_plot=False):
+    """Manipulates input Dataframe in place:
     Fills in missing Customers with a rolling average from the last monthly,
     for each weekday respectively. This is done for each store ID separately.
     Where not possible, a simple median is used as fill value.
-    '''
+    """
 
     customers_per_store_and_date = all_data.groupby(['Store', 'Date'])['Customers'].mean()
 
