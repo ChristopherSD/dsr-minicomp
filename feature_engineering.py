@@ -2,6 +2,32 @@ import pandas as pd
 import datetime as datetime
 import numpy as np
 
+
+def execute_feature_engineering() -> pd.DataFrame:
+    """
+    Main function to execute all feature_e
+
+    Returns:
+
+    """
+    #Load clean data
+    df = pd.read_csv('./data/clean_data.csv')
+    df.Date = pd.to_datetime(df.Date)
+
+    # CompetitionSince
+    generate_CompetitionSince(df)
+
+    # Promo2SinceNWeeks
+    generate_Promo2SinceNWeeks(df)
+
+    assert df.isna().sum() == 0
+
+    #Save output
+    df.to_csv('./data/model_input_data.csv', index=False)
+
+    return df
+
+
 def generate_CompetitionSince(all_data: pd.DataFrame):
     """Generate (inplace) a feature 'CompetitionSince' which counts the months (in integer) since
     when the competition started.
@@ -23,26 +49,6 @@ def generate_CompetitionSince(all_data: pd.DataFrame):
     all_data.loc[:, 'Competition_missing'] = all_data.CompetitionSince.isna()
     all_data.CompetitionSince.fillna(-1000, inplace=True)
     all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
-
-
-def execute_feature_engineering() -> pd.DataFrame:
-
-    #Load clean data
-    df = pd.read_csv('./data/clean_data.csv')
-
-    # CompetitionSince
-    generate_CompetitionSince(df)
-
-    # Promo2SinceNWeeks
-    generate_Promo2SinceNWeeks(df)
-
-    #Drop values - if still any exists
-    #df = df.dropna(axis=1)
-
-    #Save output
-    df.to_csv('./data/model_input_data.csv', index=False)
-
-    return df.dropna(axis=1)
 
 
 def generate_Promo2SinceNWeeks(all_data: pd.DataFrame):
