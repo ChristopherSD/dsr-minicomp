@@ -115,7 +115,7 @@ def create_basetable() -> pd.DataFrame:
     # competition modification - dropping NULL sales
     df = drop_empty_and_zero_sales(df)
 
-    # custom imputers
+    ### custom imputers
     # DayOfWeek
     df.DayOfWeek = impute_dayofweek_from_date(df)
 
@@ -128,7 +128,7 @@ def create_basetable() -> pd.DataFrame:
     # StateHoliday
     df.StateHoliday = impute_holiday(df, 'StateHoliday')
 
-    # default values
+    # impute default values
     impute_config = {
         'Store': 0,
         'StoreType': 'unknown',
@@ -140,6 +140,9 @@ def create_basetable() -> pd.DataFrame:
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
+
+    # save output
+    df.to_csv('./data/clean_data.csv')
 
     return df
 
