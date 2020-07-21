@@ -116,13 +116,17 @@ def create_basetable() -> pd.DataFrame:
     df = drop_empty_sales(df)
 
     # custom imputers
-    df['DayOfWeek'] = impute_dayofweek_from_date(df)
+    # DayOfWeek
+    df.DayOfWeek = impute_dayofweek_from_date(df)
 
-    # impute customers (rolling average)
+    # Customers
     inplace_impute_rolling_avg_customers(df)
 
-    # impute Open
+    # Open (is open)
     df.Open = impute_open_from_customers(df)
+
+    # StateHoliday
+    df.StateHoliday = impute_holiday(df, 'StateHoliday')
 
     # default values
     impute_config = {
@@ -137,17 +141,12 @@ def create_basetable() -> pd.DataFrame:
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
 
-    # convert data types
-    df['StateHoliday'] = df['StateHoliday'].astype(str)
-
     return df
 
 
 def impute_holiday(df: pd.DataFrame, column: str) -> pd.Series:
     """
-    Impute the holiday indicator based on list of known holidays.
-    If it's not a known holiday, it tries to gather data based on information from another stores
-    at that specific day.
+    Impute holiday indicator based on information from another stores at that specific day.
 
     Args:
         df (pd.DataFrame): input DataFrame
@@ -156,15 +155,15 @@ def impute_holiday(df: pd.DataFrame, column: str) -> pd.Series:
         pd.Series: imputed column with holiday indicator
     """
     df = df[[column, 'Date']]
-    null_mask = (df[column] == 'unknown')
-    df_null = df.loc[null_mask, :]
+    if column == 'StateHoliday':
+        df[column] = df[column].replace(0.0, 0)
 
-    for i, index in enumerate(df_null.index):
-        mask = (df['Date'] == df_null.iloc[i]['Date'])
-        temp_value = df.loc[mask, column].value_counts().sort_values(ascending=False)[0]
-        df.loc[index][column] = temp_value
+    df[column] = df[column].astype(str)
 
-    assert df.isna().sum() != 0
+    df_aggr = df.groupby('Date').agg(lambda x: x.value_counts().index[0])
+    null_mask = (df[column] == 'nan')
+
+    df.loc[null_mask, 'StateHoliday'] = df[null_mask]['Date'].apply(lambda x: df_aggr.to_dict()['StateHoliday'][x]).values
 
     return df[column]
 
