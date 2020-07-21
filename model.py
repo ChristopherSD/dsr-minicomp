@@ -4,7 +4,7 @@ from data_transformation import create_basetable
 from feature_engineering import execute_feature_engineering
 
 
-def get_train_data():
+def get_input_data():
     # update data
     _ = create_basetable()
     _ = execute_feature_engineering()
