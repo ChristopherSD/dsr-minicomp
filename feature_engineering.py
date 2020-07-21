@@ -30,6 +30,12 @@ def execute_feature_engineering() -> pd.DataFrame:
     #Load clean data
     df = pd.read_csv('./data/clean_data.csv')
 
+    # CompetitionSince
+    generate_CompetitionSince(df)
+
+    # Promo2SinceNWeeks
+    generate_Promo2SinceNWeeks(df)
+
     #Drop values - if still any exists
     #df = df.dropna(axis=1)
 
