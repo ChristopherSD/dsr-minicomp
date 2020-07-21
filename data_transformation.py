@@ -69,7 +69,7 @@ def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOf
     missing_dow[dow_col] = missing_dow[date_col].dt.dayofweek
     # add one to dt.dayofweek since the original original feature values start with Monday == 1,
     # whereas DateTime starts with Monday == 0
-    dow_imputed = df[dow_col].fillna(missing_dow[dow_col]) + 1.0
+    dow_imputed = (df[dow_col].fillna(missing_dow[dow_col]) + 1.0) % 7
 
     return dow_imputed
 
