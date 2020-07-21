@@ -97,23 +97,23 @@ def impute_open_from_customers(df: pd.DataFrame, open_col='Open', customers_col=
     return open_imputed
 
 
-def create_basetable() -> pd.DataFrame:
+def create_basetable(df) -> pd.DataFrame:
     """Prepare base table:
         - Drop sales
         - Make imputation with default value
         - Make customized imputations
 
         Args:
+            df: The data frame that is to be cleaned
         Returns:
             df: Cleanse data ready for FeatureEngineering
     """
-    # get raw data
-    df = get_all_train_data()
 
     # competition modification - dropping NULL sales
     df = drop_empty_and_zero_sales(df)
 
-    ### custom imputers
+    # custom imputers
+
     # DayOfWeek
     df.DayOfWeek = impute_dayofweek_from_date(df)
 
