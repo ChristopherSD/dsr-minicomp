@@ -38,6 +38,9 @@ def execute_feature_engineering() -> pd.DataFrame:
     # Promo2SinceNWeeks
     generate_Promo2SinceNWeeks(df)
 
+    # PromoStarted
+    generate_PromoStarted(df)
+
     # Drop values - if still any exists
     # df = df.dropna(axis=1)
 
