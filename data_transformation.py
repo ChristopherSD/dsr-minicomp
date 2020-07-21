@@ -1,13 +1,11 @@
 """Functions to impute and transform data.
 """
-from typing import List
 
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import datetime
 import numpy as np
-import seaborn as sns
 
 
 _sales_col = 'Sales'
@@ -142,7 +140,7 @@ def create_basetable() -> pd.DataFrame:
         df[col] = df[col].fillna(default_value)
 
     # save output
-    df.to_csv('./data/clean_data.csv')
+    df.to_csv('./data/clean_data.csv', index=False)
 
     return df
 

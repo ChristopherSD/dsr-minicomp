@@ -1,7 +1,5 @@
 import pandas as pd
-import datetime as datetime
 import numpy as np
-from data_transformation import create_basetable
 
 def generate_CompetitionSince(all_data: pd.DataFrame):
     """Generate (inplace) a feature 'CompetitionSince' which counts the months (in integer) since
@@ -24,9 +22,9 @@ def execute_feature_engineering() -> pd.DataFrame:
     df = pd.read_csv('./data/clean_data.csv')
 
     #Drop values - if still any exists
-    df = df.dropna(axis=1)
+    #df = df.dropna(axis=1)
 
     #Save output
-    df.to_csv('./data/model_input_data.csv')
+    df.to_csv('./data/model_input_data.csv', index=False)
 
     return df.dropna(axis=1)
