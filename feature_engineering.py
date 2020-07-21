@@ -75,7 +75,7 @@ def generate_PromoStarted(all_data: pd.DataFrame, drop=True, itvl_col='PromoInte
         all_data.drop(labels=[itvl_col], axis=1, inplace=True)
 
 
-def generate_Promo2SinceNWeeks(all_data: pd.DataFrame):
+def generate_Promo2SinceNWeeks(all_data: pd.DataFrame, drop=True):
     """Generate (inplace) a feature 'Promo2SinceNWeeks' which counts the weeks (in integer) since
     when a Promo2 started.
     Fills missing values with -1000.
