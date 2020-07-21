@@ -1,12 +1,12 @@
 import pandas as pd
 
-from data_transformation import create_basetable
+from data_transformation import get_all_train_data, create_basetable
 from feature_engineering import execute_feature_engineering
 
 
 def get_input_data():
     # update data
-    _ = create_basetable()
+    _ = create_basetable(get_all_train_data())
     _ = execute_feature_engineering()
 
     # load data
