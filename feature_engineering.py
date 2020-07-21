@@ -4,7 +4,7 @@ import numpy as np
 from dateutil.parser import parse
 
 
-def generate_CompetitionSince(all_data: pd.DataFrame):
+def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
     """Generate (inplace) a feature 'CompetitionSince' which counts the months (in integer) since
     when the competition started.
     Fills missing values with -1000.
@@ -24,10 +24,12 @@ def generate_CompetitionSince(all_data: pd.DataFrame):
 
     all_data.loc[:, 'Competition_missing'] = all_data.CompetitionSince.isna()
     all_data.CompetitionSince.fillna(-1000, inplace=True)
-    all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
+
+    if drop:
+        all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
 
 
-def execute_feature_engineering() -> pd.DataFrame:
+def execute_feature_engineering_all() -> pd.DataFrame:
 
     # Load clean data
     df = pd.read_csv('./data/clean_data.csv')
@@ -61,7 +63,7 @@ def is_in_promo_month(row, itvl_col='PromoInterval'):
     return 0.0
 
 
-def generate_PromoStarted(all_data: pd.DataFrame, itvl_col='PromoInterval'):
+def generate_PromoStarted(all_data: pd.DataFrame, drop=True, itvl_col='PromoInterval'):
     """Generate (inplace) a feature 'CompetitionSince' which counts the months (in integer) since
     when the competition started.
     """
@@ -69,7 +71,8 @@ def generate_PromoStarted(all_data: pd.DataFrame, itvl_col='PromoInterval'):
     promo_started = all_data.apply(is_in_promo_month, axis=1)
     all_data[new_col_name] = promo_started
 
-    all_data.drop(labels=[itvl_col], axis=1, inplace=True)
+    if drop:
+        all_data.drop(labels=[itvl_col], axis=1, inplace=True)
 
 
 def generate_Promo2SinceNWeeks(all_data: pd.DataFrame):
@@ -92,5 +95,7 @@ def generate_Promo2SinceNWeeks(all_data: pd.DataFrame):
 
     all_data.loc[:, 'Promo2SinceNWeeks_missing'] = all_data.Promo2SinceYear.isna()
     all_data.Promo2SinceNWeeks.fillna(-1000, inplace=True)
-    all_data.drop(labels=['Promo2SinceYear', 'Promo2SinceWeek'], axis=1, inplace=True)
+
+    if drop:
+        all_data.drop(labels=['Promo2SinceYear', 'Promo2SinceWeek'], axis=1, inplace=True)
 
