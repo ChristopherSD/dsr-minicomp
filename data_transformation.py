@@ -97,7 +97,18 @@ def impute_open_from_customers(df: pd.DataFrame, open_col='Open', customers_col=
     return open_imputed
 
 
-def create_basetable(df) -> pd.DataFrame:
+def create_basetable(df, impute_config={
+    'Store': 0,
+    'StoreType': 'unknown',
+    'SchoolHoliday': 'unknown',
+    'Assortment': 'unknown',
+    'StateHoliday': 'unknown',
+    'DayOfWeek': 'unknown',
+    'Promo': 'unknown',
+    'Promo2': 'unknown',
+    'CompetitionDistance': -1
+}
+                     ) -> pd.DataFrame:
     """Prepare base table:
         - Drop sales
         - Make imputation with default value
@@ -127,17 +138,6 @@ def create_basetable(df) -> pd.DataFrame:
     df.StateHoliday = impute_holiday(df, 'StateHoliday')
 
     # impute default values
-    impute_config = {
-        'Store': 0,
-        'StoreType': 'unknown',
-        'SchoolHoliday': 'unknown',
-        'Assortment': 'unknown',
-        'StateHoliday': 'unknown',
-        'DayOfWeek': 'unknown',
-        'Promo': 'unknown',
-        'Promo2': 'unknown',
-        'CompetitionDistance': -1
-    }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
 
