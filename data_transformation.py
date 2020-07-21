@@ -45,10 +45,10 @@ def fillna_StoreType_and_factorize(all_data):
     return output, int_to_storetype, storetype_to_int
 
 
-def drop_empty_sales(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop all rows where the Sales column is Na.
+def drop_empty_and_zero_sales(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop all rows where the Sales column is Na or zero.
     """
-    return df[df[_sales_col].notna()]
+    return df[df[_sales_col].notna() & df[_sales_col] > 0]
 
 
 def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOfWeek') -> pd.Series:
@@ -113,7 +113,7 @@ def create_basetable() -> pd.DataFrame:
     df = get_all_train_data()
 
     # competition modification - dropping NULL sales
-    df = drop_empty_sales(df)
+    df = drop_empty_and_zero_sales(df)
 
     # custom imputers
     # DayOfWeek
