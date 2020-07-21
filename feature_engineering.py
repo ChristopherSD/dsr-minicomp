@@ -21,8 +21,7 @@ def generate_CompetitionSince(all_data: pd.DataFrame):
 def execute_feature_engineering() -> pd.DataFrame:
 
     #Load clean data
-    _ = create_basetable()
-    df = pd.read_csv('./data/train.csv')
+    df = pd.read_csv('./data/clean_data.csv')
 
     #Drop values - if still any exists
     df = df.dropna(axis=1)

@@ -132,3 +132,4 @@ dmypy.json
 #Personal
 notebook_tom.ipynb
 /data/clean_data.csv
+/data/model_input_data.csv
