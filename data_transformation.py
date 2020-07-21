@@ -135,7 +135,8 @@ def create_basetable() -> pd.DataFrame:
         'StateHoliday': 'unknown',
         'DayOfWeek': 'unknown',
         'Promo': 'unknown',
-        'Promo2': 'unknown'
+        'Promo2': 'unknown',
+        'CompetitionDistance': -1
     }
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
