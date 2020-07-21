@@ -1,13 +1,11 @@
 """Functions to impute and transform data.
 """
-from typing import List
 
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import datetime
 import numpy as np
-import seaborn as sns
 
 
 _sales_col = 'Sales'
@@ -45,10 +43,10 @@ def fillna_StoreType_and_factorize(all_data):
     return output, int_to_storetype, storetype_to_int
 
 
-def drop_empty_sales(df: pd.DataFrame) -> pd.DataFrame:
-    """Drop all rows where the Sales column is Na.
+def drop_empty_and_zero_sales(df: pd.DataFrame) -> pd.DataFrame:
+    """Drop all rows where the Sales column is Na or zero.
     """
-    return df[df[_sales_col].notna()]
+    return df[df[_sales_col].notna() & df[_sales_col] > 0]
 
 
 def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOfWeek') -> pd.Series:
@@ -113,18 +111,22 @@ def create_basetable() -> pd.DataFrame:
     df = get_all_train_data()
 
     # competition modification - dropping NULL sales
-    df = drop_empty_sales(df)
+    df = drop_empty_and_zero_sales(df)
 
-    # custom imputers
-    df['DayOfWeek'] = impute_dayofweek_from_date(df)
+    ### custom imputers
+    # DayOfWeek
+    df.DayOfWeek = impute_dayofweek_from_date(df)
 
-    # impute customers (rolling average)
+    # Customers
     inplace_impute_rolling_avg_customers(df)
 
-    # impute Open
+    # Open (is open)
     df.Open = impute_open_from_customers(df)
 
-    # default values
+    # StateHoliday
+    df.StateHoliday = impute_holiday(df, 'StateHoliday')
+
+    # impute default values
     impute_config = {
         'Store': 0,
         'StoreType': 'unknown',
@@ -137,10 +139,34 @@ def create_basetable() -> pd.DataFrame:
     for col, default_value in zip(impute_config.keys(), impute_config.values()):
         df[col] = df[col].fillna(default_value)
 
-    # convert data types
-    df['StateHoliday'] = df['StateHoliday'].astype(str)
+    # save output
+    df.to_csv('./data/clean_data.csv', index=False)
 
     return df
+
+
+def impute_holiday(df: pd.DataFrame, column: str) -> pd.Series:
+    """
+    Impute holiday indicator based on information from another stores at that specific day.
+
+    Args:
+        df (pd.DataFrame): input DataFrame
+        column: column that requires imputed values
+    Returns:
+        pd.Series: imputed column with holiday indicator
+    """
+    df = df[[column, 'Date']]
+    if column == 'StateHoliday':
+        df[column] = df[column].replace(0.0, 0)
+
+    df[column] = df[column].astype(str)
+
+    df_aggr = df.groupby('Date').agg(lambda x: x.value_counts().index[0])
+    null_mask = (df[column] == 'nan')
+
+    df.loc[null_mask, 'StateHoliday'] = df[null_mask]['Date'].apply(lambda x: df_aggr.to_dict()['StateHoliday'][x]).values
+
+    return df[column]
 
 
 def inplace_impute_rolling_avg_customers(all_data: pd.DataFrame, do_plot=False):

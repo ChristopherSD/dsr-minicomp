@@ -25,7 +25,16 @@ def generate_CompetitionSince(all_data: pd.DataFrame):
     all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
 
 
-def execute_transformations(df: pd.DataFrame) -> pd.DataFrame:
+def execute_feature_engineering() -> pd.DataFrame:
+
+    #Load clean data
+    df = pd.read_csv('./data/clean_data.csv')
+
+    #Drop values - if still any exists
+    #df = df.dropna(axis=1)
+
+    #Save output
+    df.to_csv('./data/model_input_data.csv', index=False)
 
     return df.dropna(axis=1)
 
