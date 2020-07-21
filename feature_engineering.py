@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime as datetime
 import numpy as np
+from data_transformation import create_basetable
 
 def generate_CompetitionSince(all_data: pd.DataFrame):
     """Generate (inplace) a feature 'CompetitionSince' which counts the months (in integer) since
@@ -17,6 +18,16 @@ def generate_CompetitionSince(all_data: pd.DataFrame):
 
     all_data.loc[mask, 'CompetitionSince'] = CompetitionSince
 
-def execute_transformations(df: pd.DataFrame) -> pd.DataFrame:
+def execute_feature_engineering() -> pd.DataFrame:
+
+    #Load clean data
+    _ = create_basetable()
+    df = pd.read_csv('./data/train.csv')
+
+    #Drop values - if still any exists
+    df = df.dropna(axis=1)
+
+    #Save output
+    df.to_csv('./data/model_input_data.csv')
 
     return df.dropna(axis=1)
