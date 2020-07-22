@@ -27,7 +27,7 @@ def predict():
 
     rmspe = metric(preds, y.to_numpy())
     print(f"RMSPE on test data set with XGBoost: {rmspe} /%")
-
+    '''
     xgb.plot_tree(xg_reg,num_trees=0)
     plt.rcParams['figure.figsize'] = [50, 10]
     plt.show()
@@ -35,5 +35,5 @@ def predict():
     xgb.plot_importance(xg_reg)
     plt.rcParams['figure.figsize'] = [5, 5]
     plt.show()
-
+    '''
     return rmspe
