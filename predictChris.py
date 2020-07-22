@@ -18,7 +18,7 @@ def predict():
     train = transform_test_data(all_data)
 
     y = train['Sales']
-    X = train.drop(['Date', 'Sales'], axis=1)
+    X = train.drop(['Date', 'Sales'], axis=1)data.Date = pd.to_datetime(df.Date, format='%Y-%m-%d')
 
     xg_reg = xgb.XGBRegressor()
     xg_reg.load_model(model_path)
