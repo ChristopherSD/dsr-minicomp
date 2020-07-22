@@ -36,6 +36,6 @@ def score_model_ti():
     print(print(metric(y_pred, np.array(y_test))))
 
     pred_path = './data/y_pred_ti.csv'
-    y_pred.to_csv(pred_path)
+    pd.DataFrame(y_pred).to_csv(pred_path)
 
     return x_test, y_test, y_pred
