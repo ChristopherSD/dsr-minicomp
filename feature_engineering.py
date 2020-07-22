@@ -4,6 +4,9 @@ import numpy as np
 from dateutil.parser import parse
 from pathlib import Path
 from category_encoders.target_encoder import TargetEncoder
+from sklearn.preprocessing import OneHotEncoder
+from data_transformation import *
+import tqdm
 
 
 def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
@@ -234,3 +237,86 @@ def generate_cyclic_feature_month(df):
     cos_month = cos_month.reindex(df.index)
     return sin_month, cos_month
 
+
+def my_impute_data(data):
+    """Custom function for Michael's Model
+    """
+
+    df = data.copy()
+    # all_data = create_basetable()
+    # all_data = pd.read_csv('base_table.csv')
+
+    # Promo2
+    df.Promo2.fillna('unknown', inplace=True)
+
+    # CompetitionDistance
+    impute_competition_distance = df.CompetitionDistance.median()
+    df.CompetitionDistance.fillna(impute_competition_distance, inplace=True)
+
+    # CompetitionSince
+    generate_CompetitionSince(df)
+
+    # Promo2SinceNweeks
+    generate_Promo2SinceNWeeks(df)
+
+    # PromoInterval
+    df.drop(labels=['PromoInterval'], axis=1, inplace=True)
+
+    # StateHoliday
+    new_col = df[['StateHoliday']].apply(lambda x: x['StateHoliday'] if x['StateHoliday'] in ['a', 'b', 'c'] else '0',
+                                         axis=1)
+    df.StateHoliday = new_col
+
+    return df
+
+
+def massive_onehot(input_df, enc=None):
+    """Apply OnehotEncoder to columns:
+    'Promo', 'SchoolHoliday', 'StateHoliday', 'StoreType', 'Assortment', 'Promo2'
+    """
+
+    data = input_df.copy()
+
+    cat_features = ['Promo', 'SchoolHoliday', 'StateHoliday', 'StoreType', 'Assortment', 'Promo2']
+
+    # replace floats (0.0, 1.0) with strings ('0', '1')
+    for c in cat_features:
+        data[c] = data[c].replace(0, '0').replace(1, '1')
+
+    if not enc:
+        print("Fit OneHotEncoder...")
+        enc = OneHotEncoder()
+        new_cat = pd.DataFrame(enc.fit_transform(data[cat_features].astype(str)).toarray())
+    else:
+        print("Transform using existing OneHotEncoder...")
+        enc = enc
+        new_cat = pd.DataFrame(enc.transform(data[cat_features].astype(str)).toarray())
+
+    new_cat.columns = enc.get_feature_names()
+
+    new_cat.index = data.index
+
+    data = data.join(new_cat).drop(cat_features, axis=1)
+
+    return data, enc
+
+
+def my_preprocess_data(data, oneh_enc=None, target_enc=None):
+    """ Data preprocessing function for Michael's Model
+    """
+
+    data = create_basetable(data)
+
+    data = my_impute_data(data)
+
+    # data = engineer_simple_features(data)
+    data, oneh_enc = massive_onehot(data, oneh_enc)
+
+    new_store, target_enc = target_encode_Stores(data, target_enc)
+
+    sin_month, cos_month = generate_cyclic_feature_month(data)
+    data['sin_month'] = sin_month
+    data['cos_month'] = cos_month
+    data = data.drop(['Date'], axis=1)
+
+    return data, oneh_enc, target_enc
