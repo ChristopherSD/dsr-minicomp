@@ -25,6 +25,19 @@ def get_all_train_data():
 
     return all_data
 
+def get_all_test_data():
+    """Get all TEST data an merge into one big dataframe and convert Date to datetime
+    """
+    test_path = Path(Path(__file__).parent.absolute(), 'data', 'test.csv')
+    store_path = Path(Path(__file__).parent.absolute(), 'data', 'store.csv')
+    test_data = pd.read_csv(test_path)
+    store_data = pd.read_csv(store_path)
+
+    all_data = test_data.merge(store_data, how='outer', left_on='Store', right_on='Store')
+    all_data.Date = pd.to_datetime(all_data.Date, format='%Y-%m-%d')
+
+    return all_data
+
 
 def fillna_StoreType_and_factorize(all_data):
     """Fill nan value in StoreType with string 'unknown' and label encode the values

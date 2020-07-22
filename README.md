@@ -1,5 +1,4 @@
-# DSR - Mini Competition
-Mini competition at Data Science Retreat Batch 23
+# Mini competition at Data Science Retreat Batch 23
 
 This repo represents the submission for the mini competition at [Data Science Retreat](#https://www.datascienceretreat.com/)
 during Batch 23. The team consists of Michael Drews, Tomasz Iżycki, and Christopher Dick (the owner of this repo). The 
