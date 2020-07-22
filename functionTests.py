@@ -1,5 +1,6 @@
 import pandas as pd
 import data_transformation as dt
+import feature_engineering as fe
 import pickle
 import matplotlib.pyplot as plt
 from testing.predictiveAccuracy import custom_scorer_metric
@@ -10,14 +11,16 @@ import numpy as np
 import xgboost as xgb
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 from testing.predictiveAccuracy import metric
 
+'''
 train_data = pd.read_csv("../data/train.csv")
 store_data = pd.read_csv("../data/store.csv")
 
 all_data = train_data.merge(store_data, how = 'outer', left_on='Store', right_on='Store')
 all_data.Date = pd.to_datetime(all_data.Date, format='%Y-%m-%d')
-
+'''
 '''
 # test generate_PromoStarted
 #data = all_data.copy()
@@ -36,11 +39,13 @@ print(data.isna().sum())
 '''
 
 
-load = True
+load = False
 
 #raw_data = dt.get_all_train_data()
-raw_data = all_data
+#raw_data = all_data
 
+
+'''
 sorted_data = raw_data.sort_values(by=['Date'])
 
 target_col = 'Sales'
@@ -112,12 +117,14 @@ restacked_X_data = X_train_folds_imp[-1].append(X_test_folds_imp[-1])
 restacked_y_data = y_train_folds_imp[-1].append(y_test_folds_imp[-1])
 
 # pd.get_dummies(restacked_X_data).dtypes
-'''
+
 grid.fit(
     restacked_X_data.drop(['Date', 'Sales'], axis=1).to_numpy(),
     restacked_y_data['Sales'].to_numpy()
 )
 '''
+
+
 '''
 regr = RandomForestRegressor(max_depth=2, random_state=0)
 regr.fit(X_train_no_date, y_train)
@@ -132,8 +139,21 @@ metric(np.mean(X_test_no_date.to_numpy(), axis=1), y_test.to_numpy())
 '''
 
 ##############
-# xgboost
+#  xgboost   #
 ##############
+
+if not load:
+    raw_data = dt.get_all_train_data()
+    data = dt.create_basetable(raw_data)
+    data.to_csv('./data/clean_data.csv')
+
+data = fe.execute_feature_engineering_all()
+
+# label encoding
+categorical_columns = []
+le = LabelEncoder()
+
+
 
 y = raw_data['Sales']
 X = raw_data.drop(['Sales'], axis=1)
