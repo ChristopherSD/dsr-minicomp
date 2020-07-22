@@ -103,6 +103,11 @@ def target_encoder(df: pd.DataFrame, x_col: str, y_col: str):
 
     return df[x_col].apply(lambda x: agg[x]).values
 
+def is_StateHoliday(df):
+    """Generates a new boolean column, if it is a StateHoliday or not
+    """
+    return ((df.StateHoliday == 'a') | (df.StateHoliday == 'b') | (df.StateHoliday == 'c'))
+
 
 def is_in_promo_month(row, itvl_col='PromoInterval'):
     if (itvl_col in row) and isinstance(row[itvl_col], str):
