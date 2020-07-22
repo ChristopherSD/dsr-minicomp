@@ -33,7 +33,6 @@ def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
     if drop:
         all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
 
-
 def execute_feature_engineering_all(df: pd.DataFrame) -> pd.DataFrame:
 
     # CompetitionSince
@@ -52,8 +51,7 @@ def execute_feature_engineering_all(df: pd.DataFrame) -> pd.DataFrame:
     input_data_path = Path(Path(__file__).parent.absolute(), 'data', 'model_input_data.csv')
     df.to_csv(input_data_path, index=False)
 
-    return df.dropna(axis=1)
-
+    return df
 
 def one_hot_encoder_fit_transform(df: pd.DataFrame, col_name: str):
     """
@@ -70,7 +68,6 @@ def one_hot_encoder_fit_transform(df: pd.DataFrame, col_name: str):
     enc.fit(df[col_name].values.reshape(-1, 1))
 
     return one_hot_encoder_transform(df, col_name, enc), enc
-
 
 def one_hot_encoder_transform(df: pd.DataFrame, col_name: str, enc):
     """
@@ -90,11 +87,15 @@ def one_hot_encoder_transform(df: pd.DataFrame, col_name: str, enc):
                                   )
     return pd.concat([df, encoded_column], axis=1).drop(col_name, axis=1)
 
-
 def is_StateHoliday(df):
     """Generates a new boolean column, if it is a StateHoliday or not
     """
     return ((df.StateHoliday == 'a') | (df.StateHoliday == 'b') | (df.StateHoliday == 'c'))
+
+def is_SchoolHoliday(df):
+    """Generates a new boolean column, if it is a StateHoliday or not
+    """
+    return ((df.SchoolHoliday == '1') | (df.SchoolHoliday == 1) | (df.SchoolHoliday == '1.0') | (df.SchoolHoliday == 1.0))
 
 def log_transform(inp: pd.Series):
     """
@@ -109,7 +110,6 @@ def log_transform(inp: pd.Series):
     x = inp - inp.min() + 1
     return np.log(x)
 
-
 def is_in_promo_month(row, itvl_col='PromoInterval'):
     if (itvl_col in row) and isinstance(row[itvl_col], str):
         intervals = row[itvl_col].split(',')
@@ -119,7 +119,6 @@ def is_in_promo_month(row, itvl_col='PromoInterval'):
                 return 1.0
 
     return 0.0
-
 
 def generate_PromoStarted(all_data: pd.DataFrame, drop=True, itvl_col='PromoInterval'):
     """Generate (inplace) a feature 'CompetitionSince' which counts the months (in integer) since
@@ -131,7 +130,6 @@ def generate_PromoStarted(all_data: pd.DataFrame, drop=True, itvl_col='PromoInte
 
     if drop:
         all_data.drop(labels=[itvl_col], axis=1, inplace=True)
-
 
 def generate_Promo2SinceNWeeks(all_data: pd.DataFrame, drop=True):
     """Generate (inplace) a feature 'Promo2SinceNWeeks' which counts the weeks (in integer) since
@@ -157,13 +155,11 @@ def generate_Promo2SinceNWeeks(all_data: pd.DataFrame, drop=True):
     if drop:
         all_data.drop(labels=['Promo2SinceYear', 'Promo2SinceWeek'], axis=1, inplace=True)
 
-
 def generate_col_month(df):
     """Generates a new feature "month"
     """
     month = df.Date.dt.month
     return month
-
 
 def target_encode_Stores(df, enc=None):
     """Target encode the Store variable using the category_encoders module
@@ -187,7 +183,6 @@ def target_encode_Stores(df, enc=None):
     df.loc[:, 'Store'] = new_store
 
     return new_store, enc
-
 
 def target_encode_custom(df: pd.DataFrame, name: str, enc=None):
     """Target encode the Store variable using the category_encoders module
@@ -223,7 +218,7 @@ def generate_cyclic_feature_month(df):
     return sin_month, cos_month
 
 def generate_cyclic_feature_week(df):
-    """Generates a new feature "Week"
+    """Generates a new feature "week"
     """
     sin_week = np.sin(df.Date.dt.week/52*2*np.pi)
     cos_week = np.cos(df.Date.dt.week/52*2*np.pi)
