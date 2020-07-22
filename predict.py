@@ -1,16 +1,16 @@
 #!/usr/bin/env
-from data_transformation import *
 import os
+import predictChris
 from feature_engineering import *
 from joblib import dump, load
+from testing.predictiveAccuracy import metric
 
-def metric(actuals, preds):
-    preds = preds.reshape(-1)
-    actuals = actuals.reshape(-1)
-    assert preds.shape == actuals.shape
-    return 100 * np.linalg.norm((actuals - preds) / actuals) / np.sqrt(preds.shape[0])
 
 def main():
+    test_err = predictChris.predict()
+
+
+def predict_michael():
 
     model1_path = os.path.join('./models', 'rf_2')
     y_pred1 = np.load(os.path.join(model1_path, 'y_pred_TEST.npy'))
@@ -27,8 +27,6 @@ def main():
     test_data, _, _ = my_preprocess_data(test_data, oneh_enc, target_enc)
 
     y_test = test_data[['Sales']].values
-
-    import pdb; pdb.set_trace()
 
     score = metric(y_test, y_pred1)
 
