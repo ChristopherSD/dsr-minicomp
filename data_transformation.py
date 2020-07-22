@@ -62,7 +62,7 @@ def fillna_StoreType_and_factorize(all_data):
 def drop_empty_and_zero_sales(df: pd.DataFrame) -> pd.DataFrame:
     """Drop all rows where the Sales column is Na or zero.
     """
-    return df[df[_sales_col].notna() & df[_sales_col] > 0]
+    return df[(df[_sales_col].notna()) & (df[_sales_col] > 0)]
 
 
 def impute_dayofweek_from_date(df: pd.DataFrame, date_col='Date', dow_col='DayOfWeek') -> pd.Series:
