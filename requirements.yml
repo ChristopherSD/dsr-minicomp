@@ -150,5 +150,4 @@ dependencies:
   - zipp=3.1.0=py_0
   - zlib=1.2.11=h7b6447c_3
   - zstd=1.4.5=h0b5b093_0
-prefix: /home/chris/anaconda3/envs/minicomp
 
