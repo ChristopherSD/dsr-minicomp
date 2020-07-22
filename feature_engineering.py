@@ -103,6 +103,19 @@ def target_encoder(df: pd.DataFrame, x_col: str, y_col: str):
 
     return df[x_col].apply(lambda x: agg[x]).values
 
+def log_transform(inp: pd.Series):
+    """
+    Function to log transform - takes care of negative and 0 values.
+
+    Args:
+        inp - pd.Series to log transform
+    Returns:
+        transformed pd.Series
+    """
+    x = pd.Series()
+    x = inp - inp.min() + 1
+    return np.log(x)
+
 
 def is_in_promo_month(row, itvl_col='PromoInterval'):
     if (itvl_col in row) and isinstance(row[itvl_col], str):
