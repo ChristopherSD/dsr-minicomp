@@ -2,6 +2,7 @@ import pandas as pd
 import datetime as datetime
 import numpy as np
 from dateutil.parser import parse
+from pathlib import Path
 
 
 def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
@@ -29,10 +30,7 @@ def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
         all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
 
 
-def execute_feature_engineering_all() -> pd.DataFrame:
-
-    # Load clean data
-    df = pd.read_csv('./data/clean_data.csv')
+def execute_feature_engineering_all(df: pd.DataFrame) -> pd.DataFrame:
 
     # CompetitionSince
     generate_CompetitionSince(df)
@@ -47,7 +45,8 @@ def execute_feature_engineering_all() -> pd.DataFrame:
     # df = df.dropna(axis=1)
 
     # Save output
-    df.to_csv('./data/model_input_data.csv', index=False)
+    input_data_path = Path(Path(__file__).parent.absolute(), 'data', 'model_input_data.csv')
+    df.to_csv(input_data_path, index=False)
 
     return df.dropna(axis=1)
 
