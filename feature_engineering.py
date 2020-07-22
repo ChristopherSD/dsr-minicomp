@@ -219,3 +219,11 @@ def generate_cyclic_feature_month(df):
     cos_month = cos_month.reindex(df.index)
     return sin_month, cos_month
 
+def generate_cyclic_feature_week(df):
+    """Generates a new feature "Week"
+    """
+    sin_week = np.sin(df.Date.dt.week/52*2*np.pi)
+    cos_week = np.cos(df.Date.dt.week/52*2*np.pi)
+    sin_week = sin_week.reindex(df.index)
+    cos_week = cos_week.reindex(df.index)
+    return sin_week, cos_week
