@@ -91,21 +91,6 @@ def one_hot_encoder_transform(df: pd.DataFrame, col_name: str, enc):
     return pd.concat([df, encoded_column], axis=1).drop(col_name, axis=1)
 
 
-def target_encoder(df: pd.DataFrame, x_col: str, y_col: str):
-    """
-    Target encoding with mean value
-
-    Args:
-        df - DataFrame to transform
-        x_col: feature to transform
-        y_col: target feature
-    Returns:
-        pd.Series, transformed feature
-    """
-    agg = df.groupby(x_col)[y_col].agg(np.mean).to_dict()
-
-    return df[x_col].apply(lambda x: agg[x]).values
-
 def is_StateHoliday(df):
     """Generates a new boolean column, if it is a StateHoliday or not
     """
