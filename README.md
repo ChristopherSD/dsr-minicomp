@@ -6,9 +6,6 @@ task is to predict the sales of a given store and date. The datasets are based o
 "[Rossmann Store Sales](#https://www.kaggle.com/c/rossmann-store-sales)". For more information on the competition, 
 have a look at the original repo [here](#https://github.com/ADGEfficiency/minicomp-rossman).
 
-## DATASET
-The dataset looks as following, blabla
-if you wanna use your own stuff it has to be in the form blabla
 
 ## SETUP
 All code is written in Python with standard data science libraries. We recommend the use of 
@@ -50,10 +47,3 @@ To predict prices from a given dataset (*.csv file), run:
 ```shell script
 $ python predict.py --file=path/to/test/file.csv
 ```
-
-###Output
-What comes out, what does it tell us?
-Save a new csv?
-
-## MODELS + PIPELINES
-describing what we actually do in our code
