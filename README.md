@@ -38,12 +38,10 @@ $ pip install -r requirements.txt
 ```
 
 ## USAGE
-To use the standard test data set run:
+To predict sales from the standard test data set run the following shell command:
 ```shell script
 $ python predict.py
 ```
 
-To predict prices from a given dataset (*.csv file), run:
-```shell script
-$ python predict.py --file=path/to/test/file.csv
-```
+This will give you the error of the predictions and a generic name for the model used.
+Future releases will include the actual prediction values and more visualizations.
