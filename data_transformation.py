@@ -2,10 +2,11 @@
 """
 
 import pandas as pd
-import matplotlib.pyplot as plt
-from tqdm import tqdm
-import datetime
 import numpy as np
+import matplotlib.pyplot as plt
+import datetime
+from pathlib import Path
+from tqdm import tqdm
 
 
 _sales_col = 'Sales'
@@ -14,8 +15,10 @@ _sales_col = 'Sales'
 def get_all_train_data():
     """Get all data an merge into one big dataframe and convert Date to datetime
     """
-    train_data = pd.read_csv("data/train.csv")
-    store_data = pd.read_csv("data/store.csv")
+    train_path = Path(Path(__file__).parent.absolute(), 'data', 'train.csv')
+    store_path = Path(Path(__file__).parent.absolute(), 'data', 'store.csv')
+    train_data = pd.read_csv(train_path)
+    store_data = pd.read_csv(store_path)
 
     all_data = train_data.merge(store_data, how='outer', left_on='Store', right_on='Store')
     all_data.Date = pd.to_datetime(all_data.Date, format='%Y-%m-%d')
@@ -142,7 +145,8 @@ def create_basetable(df, impute_config={
         df[col] = df[col].fillna(default_value)
 
     # save output
-    df.to_csv('./data/clean_data.csv', index=False)
+    clean_path = Path(Path(__file__).parent.absolute(), 'data', 'clean_data.csv')
+    df.to_csv(clean_path, index=False)
 
     return df
 
