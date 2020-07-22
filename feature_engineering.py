@@ -313,3 +313,135 @@ def my_preprocess_data(data, oneh_enc=None, target_enc=None):
     data = data.drop(['Date'], axis=1)
 
     return data, oneh_enc, target_enc
+
+
+def prepare_data_for_model_ti():
+    """
+    Data pre-processing for Tom's model
+    """
+    train_vars = [
+        'DayOfWeek',
+        'Promo',
+        'StateHoliday',
+        'SchoolHoliday',
+        'StoreType',
+        'Assortment',
+        'Promo2',
+        'Competition_missing',
+        'Promo2SinceNWeeks_missing',
+        'PromoStarted',
+        'Store',
+        'sin_week',
+        'cos_week',
+        'sin_month',
+        'cos_month',
+        'Customers_log',
+        'CompetitionDistance_log',
+        'CompetitionSince_log',
+        'Promo2SinceNWeeks_log'
+    ]
+    enc_var_list = [
+        'DayOfWeek',
+        'Promo',
+        'StateHoliday',
+        'SchoolHoliday',
+        'StoreType',
+        'Assortment',
+        'Promo2'
+    ]
+
+    raw_train = get_all_train_data()
+    raw_test = get_all_test_data()
+
+    df_train_imputed = create_basetable(raw_train,
+                                        {
+                                            'Store': 0,
+                                            'StoreType': 'unknown',
+                                            'SchoolHoliday': 'unknown',
+                                            'Assortment': 'unknown',
+                                            'StateHoliday': 'unknown',
+                                            'DayOfWeek': 'unknown',
+                                            'Promo': 'unknown',
+                                            'Promo2': 'unknown',
+                                            'CompetitionDistance': -1
+                                        }
+                                        )
+    df_test_imputed = create_basetable(raw_test,
+                                       {
+                                           'Store': 0,
+                                           'StoreType': 'unknown',
+                                           'SchoolHoliday': 'unknown',
+                                           'Assortment': 'unknown',
+                                           'StateHoliday': 'unknown',
+                                           'DayOfWeek': 'unknown',
+                                           'Promo': 'unknown',
+                                           'Promo2': 'unknown',
+                                           'CompetitionDistance': -1
+                                       }
+                                       )
+    df_train = df_train_imputed.copy()
+    df_test = df_test_imputed.copy()
+    y_test = df_test['Sales']
+
+    # transform
+    custom_transformer_ti(df_train)
+    custom_transformer_ti(df_test)
+
+    # target encoding
+    new_col, target_encoder = target_encode_Stores(df_train)
+    df_train['Store'] = new_col
+
+    new_col, _ = target_encode_Stores(df_test, target_encoder)
+    df_test['Store'] = new_col
+
+    # Keep selected features
+    df_train = df_train[train_vars]
+    df_test = df_test[train_vars]
+
+    # OneHotEncoding
+    for col in enc_var_list:
+        df_train, one_hot_encoder = one_hot_encoder_fit_transform(df_train, col)
+        df_test = one_hot_encoder_transform(df_test, col, one_hot_encoder)
+
+    return df_test, y_test
+
+
+def custom_transformer_ti(df):
+    """
+    Pre-processing pipeline for Tom's model
+    """
+
+    col_to_str = ['Promo', 'StateHoliday', 'SchoolHoliday', 'StoreType', 'Assortment', 'Promo2']
+    col_to_log_transform = ['Customers', 'CompetitionDistance', 'CompetitionSince', 'Promo2SinceNWeeks']
+
+    # creating new features
+    generate_CompetitionSince(df)
+
+    generate_Promo2SinceNWeeks(df)
+
+    generate_PromoStarted(df)
+
+    df['Month'] = df['Date'].dt.month
+    df['Week'] = df['Date'].dt.week
+
+    # log transform
+    for col in col_to_log_transform:
+        df[col + '_log'] = log_transform(df[col])
+
+    # sin-cos transform
+    sin_month, cos_month = generate_cyclic_feature_month(df)
+    df['sin_month'] = sin_month
+    df['cos_month'] = cos_month
+
+    sin_week, cos_week = generate_cyclic_feature_week(df)
+    df['sin_week'] = sin_week
+    df['cos_week'] = cos_week
+
+    # replace and change of types
+    df['Promo'] = df['Promo'].replace({0.0: 'n', 0: 'n', 1.0: 'y', 1: 'y'}).astype(str)
+    df['Promo2'] = df['Promo2'].replace({0.0: 'n', 0: 'n', 1.0: 'y', 1: 'y'}).astype(str)
+    df['SchoolHoliday'] = df['SchoolHoliday'].replace({0.0: 'n', 0: 'n', 1.0: 'y', 1: 'y'}).astype(str)
+    df['StateHoliday'] = df['StateHoliday'].replace({'0': 'n'}).astype(str)
+
+    for col in col_to_str:
+        df[col] = df[col].astype(str)
