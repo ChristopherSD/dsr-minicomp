@@ -52,6 +52,58 @@ def execute_feature_engineering_all() -> pd.DataFrame:
     return df.dropna(axis=1)
 
 
+def one_hot_encoder_fit_transform(df: pd.DataFrame, col_name: str):
+    """
+    Function to fit and transform column in DataFrame with OneHotEncoder
+
+    Args:
+        df - DataFrame to transform
+        col_name: name of the column that has to be transformed
+    Returns:
+        input DataFrame with concatenated, transformed column
+    """
+    enc = OneHotEncoder(handle_unknown='ignore', sparse=False)
+
+    enc.fit(df[col_name].values.reshape(-1, 1))
+
+    return one_hot_encoder_transform(df, col_name, enc), enc
+
+
+def one_hot_encoder_transform(df: pd.DataFrame, col_name: str, enc):
+    """
+    Function to fit and transform column in DataFrame with OneHotEncoder
+
+    Args:
+        df: DataFrame to transform
+        col_name: name of the column that has to be transformed
+        enc: instance of fitted OneHotEncoder
+    Returns:
+        input DataFrame with concatenated, transformed column
+    """
+    encoded_column = pd.DataFrame(enc.transform(df[col_name].values.reshape(-1, 1)),
+                                  columns=[col_name + '_' + str(item) for item in range(len(enc.categories_[0]))],
+                                  index=df.index
+
+                                  )
+    return pd.concat([df, encoded_column], axis=1).drop(col_name, axis=1)
+
+
+def target_encoder(df: pd.DataFrame, x_col: str, y_col: str):
+    """
+    Target encoding with mean value
+
+    Args:
+        df - DataFrame to transform
+        x_col: feature to transform
+        y_col: target feature
+    Returns:
+        pd.Series, transformed feature
+    """
+    agg = df.groupby(x_col)[y_col].agg(np.mean).to_dict()
+
+    return df[x_col].apply(lambda x: agg[x]).values
+
+
 def is_in_promo_month(row, itvl_col='PromoInterval'):
     if (itvl_col in row) and isinstance(row[itvl_col], str):
         intervals = row[itvl_col].split(',')
