@@ -4,6 +4,9 @@ import numpy as np
 from dateutil.parser import parse
 from pathlib import Path
 from category_encoders.target_encoder import TargetEncoder
+from sklearn.preprocessing import OneHotEncoder
+from data_transformation import *
+import tqdm
 
 
 def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
@@ -31,9 +34,6 @@ def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
         all_data.drop(labels=['CompetitionOpenSinceMonth', 'CompetitionOpenSinceYear'], axis=1, inplace=True)
 
 def execute_feature_engineering_all(df: pd.DataFrame) -> pd.DataFrame:
-
-    # drop empty and zero sales
-
 
     # CompetitionSince
     generate_CompetitionSince(df)
@@ -225,3 +225,218 @@ def generate_cyclic_feature_week(df):
     sin_week = sin_week.reindex(df.index)
     cos_week = cos_week.reindex(df.index)
     return sin_week, cos_week
+
+def my_impute_data(data):
+    """Custom function for Michael's Model
+    """
+
+    df = data.copy()
+    # all_data = create_basetable()
+    # all_data = pd.read_csv('base_table.csv')
+
+    # Promo2
+    df.Promo2.fillna('unknown', inplace=True)
+
+    # CompetitionDistance
+    impute_competition_distance = df.CompetitionDistance.median()
+    df.CompetitionDistance.fillna(impute_competition_distance, inplace=True)
+
+    # CompetitionSince
+    generate_CompetitionSince(df)
+
+    # Promo2SinceNweeks
+    generate_Promo2SinceNWeeks(df)
+
+    # PromoInterval
+    df.drop(labels=['PromoInterval'], axis=1, inplace=True)
+
+    # StateHoliday
+    new_col = df[['StateHoliday']].apply(lambda x: x['StateHoliday'] if x['StateHoliday'] in ['a', 'b', 'c'] else '0',
+                                         axis=1)
+    df.StateHoliday = new_col
+
+    return df
+
+
+def massive_onehot(input_df, enc=None):
+    """Apply OnehotEncoder to columns:
+    'Promo', 'SchoolHoliday', 'StateHoliday', 'StoreType', 'Assortment', 'Promo2'
+    """
+
+    data = input_df.copy()
+
+    cat_features = ['Promo', 'SchoolHoliday', 'StateHoliday', 'StoreType', 'Assortment', 'Promo2']
+
+    # replace floats (0.0, 1.0) with strings ('0', '1')
+    for c in cat_features:
+        data[c] = data[c].replace(0, '0').replace(1, '1')
+
+    if not enc:
+        print("Fit OneHotEncoder...")
+        enc = OneHotEncoder()
+        new_cat = pd.DataFrame(enc.fit_transform(data[cat_features].astype(str)).toarray())
+    else:
+        print("Transform using existing OneHotEncoder...")
+        enc = enc
+        new_cat = pd.DataFrame(enc.transform(data[cat_features].astype(str)).toarray())
+
+    new_cat.columns = enc.get_feature_names()
+
+    new_cat.index = data.index
+
+    data = data.join(new_cat).drop(cat_features, axis=1)
+
+    return data, enc
+
+
+def my_preprocess_data(data, oneh_enc=None, target_enc=None):
+    """ Data preprocessing function for Michael's Model
+    """
+
+    data = create_basetable(data)
+
+    data = my_impute_data(data)
+
+    # data = engineer_simple_features(data)
+    data, oneh_enc = massive_onehot(data, oneh_enc)
+
+    new_store, target_enc = target_encode_Stores(data, target_enc)
+
+    sin_month, cos_month = generate_cyclic_feature_month(data)
+    data['sin_month'] = sin_month
+    data['cos_month'] = cos_month
+    data = data.drop(['Date'], axis=1)
+
+    return data, oneh_enc, target_enc
+
+
+def prepare_data_for_model_ti():
+    """
+    Data pre-processing for Tom's model
+    """
+    train_vars = [
+        'DayOfWeek',
+        'Promo',
+        'StateHoliday',
+        'SchoolHoliday',
+        'StoreType',
+        'Assortment',
+        'Promo2',
+        'Competition_missing',
+        'Promo2SinceNWeeks_missing',
+        'PromoStarted',
+        'Store',
+        'sin_week',
+        'cos_week',
+        'sin_month',
+        'cos_month',
+        'Customers_log',
+        'CompetitionDistance_log',
+        'CompetitionSince_log',
+        'Promo2SinceNWeeks_log'
+    ]
+    enc_var_list = [
+        'DayOfWeek',
+        'Promo',
+        'StateHoliday',
+        'SchoolHoliday',
+        'StoreType',
+        'Assortment',
+        'Promo2'
+    ]
+
+    raw_train = get_all_train_data()
+    raw_test = get_all_test_data()
+
+    df_train_imputed = create_basetable(raw_train,
+                                        {
+                                            'Store': 0,
+                                            'StoreType': 'unknown',
+                                            'SchoolHoliday': 'unknown',
+                                            'Assortment': 'unknown',
+                                            'StateHoliday': 'unknown',
+                                            'DayOfWeek': 'unknown',
+                                            'Promo': 'unknown',
+                                            'Promo2': 'unknown',
+                                            'CompetitionDistance': -1
+                                        }
+                                        )
+    df_test_imputed = create_basetable(raw_test,
+                                       {
+                                           'Store': 0,
+                                           'StoreType': 'unknown',
+                                           'SchoolHoliday': 'unknown',
+                                           'Assortment': 'unknown',
+                                           'StateHoliday': 'unknown',
+                                           'DayOfWeek': 'unknown',
+                                           'Promo': 'unknown',
+                                           'Promo2': 'unknown',
+                                           'CompetitionDistance': -1
+                                       }
+                                       )
+    df_train = df_train_imputed.copy()
+    df_test = df_test_imputed.copy()
+    y_test = df_test['Sales']
+
+    # transform
+    custom_transformer_ti(df_train)
+    custom_transformer_ti(df_test)
+
+    # target encoding
+    new_col, target_encoder = target_encode_Stores(df_train)
+    df_train['Store'] = new_col
+
+    new_col, _ = target_encode_Stores(df_test, target_encoder)
+    df_test['Store'] = new_col
+
+    # Keep selected features
+    df_train = df_train[train_vars]
+    df_test = df_test[train_vars]
+
+    # OneHotEncoding
+    for col in enc_var_list:
+        df_train, one_hot_encoder = one_hot_encoder_fit_transform(df_train, col)
+        df_test = one_hot_encoder_transform(df_test, col, one_hot_encoder)
+
+    return df_test, y_test
+
+
+def custom_transformer_ti(df):
+    """
+    Pre-processing pipeline for Tom's model
+    """
+
+    col_to_str = ['Promo', 'StateHoliday', 'SchoolHoliday', 'StoreType', 'Assortment', 'Promo2']
+    col_to_log_transform = ['Customers', 'CompetitionDistance', 'CompetitionSince', 'Promo2SinceNWeeks']
+
+    # creating new features
+    generate_CompetitionSince(df)
+
+    generate_Promo2SinceNWeeks(df)
+
+    generate_PromoStarted(df)
+
+    df['Month'] = df['Date'].dt.month
+    df['Week'] = df['Date'].dt.week
+
+    # log transform
+    for col in col_to_log_transform:
+        df[col + '_log'] = log_transform(df[col])
+
+    # sin-cos transform
+    sin_month, cos_month = generate_cyclic_feature_month(df)
+    df['sin_month'] = sin_month
+    df['cos_month'] = cos_month
+
+    sin_week, cos_week = generate_cyclic_feature_week(df)
+    df['sin_week'] = sin_week
+    df['cos_week'] = cos_week
+
+    # replace and change of types
+    df['Promo'] = df['Promo'].replace({0.0: 'n', 0: 'n', 1.0: 'y', 1: 'y'}).astype(str)
+    df['Promo2'] = df['Promo2'].replace({0.0: 'n', 0: 'n', 1.0: 'y', 1: 'y'}).astype(str)
+    df['SchoolHoliday'] = df['SchoolHoliday'].replace({0.0: 'n', 0: 'n', 1.0: 'y', 1: 'y'}).astype(str)
+    df['StateHoliday'] = df['StateHoliday'].replace({'0': 'n'}).astype(str)
+
+    for col in col_to_str:
+        df[col] = df[col].astype(str)
