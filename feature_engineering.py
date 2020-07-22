@@ -213,3 +213,12 @@ def target_encode_custom(df: pd.DataFrame, name: str, enc=None):
 
     return new_store, enc
 
+def generate_cyclic_feature_month(df):
+    """Generates a new feature "month"
+    """
+    sin_month = np.sin(df.Date.dt.month/12*2*np.pi)
+    cos_month = np.cos(df.Date.dt.month/12*2*np.pi)
+    sin_month = sin_month.reindex(df.index)
+    cos_month = cos_month.reindex(df.index)
+    return sin_month, cos_month
+
