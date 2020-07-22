@@ -3,6 +3,7 @@ import datetime as datetime
 import numpy as np
 from dateutil.parser import parse
 from pathlib import Path
+from category_encoders.target_encoder import TargetEncoder
 
 
 def generate_CompetitionSince(all_data: pd.DataFrame, drop=True):
@@ -102,6 +103,11 @@ def target_encoder(df: pd.DataFrame, x_col: str, y_col: str):
 
     return df[x_col].apply(lambda x: agg[x]).values
 
+def is_StateHoliday(df):
+    """Generates a new boolean column, if it is a StateHoliday or not
+    """
+    return ((df.StateHoliday == 'a') | (df.StateHoliday == 'b') | (df.StateHoliday == 'c'))
+
 
 def is_in_promo_month(row, itvl_col='PromoInterval'):
     if (itvl_col in row) and isinstance(row[itvl_col], str):
@@ -149,4 +155,60 @@ def generate_Promo2SinceNWeeks(all_data: pd.DataFrame, drop=True):
 
     if drop:
         all_data.drop(labels=['Promo2SinceYear', 'Promo2SinceWeek'], axis=1, inplace=True)
+
+
+def generate_col_month(df):
+    """Generates a new feature "month"
+    """
+    month = df.Date.dt.month
+    return month
+
+
+def target_encode_Stores(df, enc=None):
+    """Target encode the Store variable using the category_encoders module
+
+    Args:
+        df: Data
+        enc: Existing Encoder / if None retrain new encoder
+    """
+
+    target = df['Sales'].values
+    stores = df['Store'].astype(str)
+
+    if not enc:
+        print("Fit TargetEncoder...")
+        enc = TargetEncoder()
+        new_store = enc.fit_transform(stores, target)
+    else:
+        print("Transform using existing TargetEncoder...")
+        new_store = enc.transform(stores, target)
+
+    df.loc[:, 'Store'] = new_store
+
+    return new_store, enc
+
+
+def target_encode_custom(df: pd.DataFrame, name: str, enc=None):
+    """Target encode the Store variable using the category_encoders module
+
+    Args:
+        df: Data
+        name (str): name of the column to encode
+        enc: Existing Encoder / if None retrain new encoder
+    """
+
+    target = df['Sales'].values
+    stores = df[name].astype(str)
+
+    if not enc:
+        print("Fit TargetEncoder...")
+        enc = TargetEncoder()
+        new_store = enc.fit_transform(stores, target)
+    else:
+        print("Transform using existing TargetEncoder...")
+        new_store = enc.transform(stores, target)
+
+    df.loc[:, name] = new_store
+
+    return new_store, enc
 
